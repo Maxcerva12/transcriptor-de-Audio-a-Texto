@@ -1,0 +1,100 @@
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import logging
+import os
+from dotenv import load_dotenv
+from contextlib import asynccontextmanager
+
+from .routers import transcription
+from .utils.whisper_service import whisper_service
+
+# Cargar variables de entorno
+load_dotenv()
+
+# Configurar logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Gestión del ciclo de vida de la aplicación"""
+    # Startup
+    logger.info("Iniciando aplicación Transquitor")
+    try:
+        # Pre-cargar modelo base
+        whisper_service.load_model("base")
+        logger.info("Modelo base pre-cargado")
+    except Exception as e:
+        logger.warning(f"No se pudo pre-cargar el modelo: {e}")
+    
+    yield
+    
+    # Shutdown
+    logger.info("Cerrando aplicación Transquitor")
+
+# Crear aplicación
+app = FastAPI(
+    title="Transquitor API",
+    description="API para transcripción de audio a texto usando Whisper",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Configurar CORS
+origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
+
+# Incluir routers
+app.include_router(
+    transcription.router,
+    prefix="/api/v1",
+    tags=["transcription"]
+)
+
+@app.get("/")
+async def root():
+    """Endpoint raíz"""
+    return {
+        "message": "Bienvenido a Transquitor API",
+        "version": "1.0.0",
+        "docs": "/docs"
+    }
+
+@app.exception_handler(404)
+async def not_found_handler(request, exc):
+    return JSONResponse(
+        status_code=404,
+        content={"error": "Endpoint no encontrado"}
+    )
+
+@app.exception_handler(500)
+async def internal_error_handler(request, exc):
+    logger.error(f"Error interno: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"error": "Error interno del servidor"}
+    )
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", 8000))
+    debug = os.getenv("DEBUG", "True").lower() == "true"
+    
+    uvicorn.run(
+        "main:app",
+        host=host,
+        port=port,
+        reload=debug
+    )

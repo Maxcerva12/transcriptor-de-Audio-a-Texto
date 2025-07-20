@@ -35,6 +35,11 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     logger.info("Cerrando aplicación Transquitor")
+    try:
+        whisper_service.shutdown()
+        logger.info("Servicio Whisper cerrado correctamente")
+    except Exception as e:
+        logger.error(f"Error al cerrar servicio Whisper: {e}")
 
 # Crear aplicación
 app = FastAPI(

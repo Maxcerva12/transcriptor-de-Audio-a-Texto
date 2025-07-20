@@ -8,9 +8,31 @@ import {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+// Tiempos estimados de procesamiento basados en el modelo (en minutos)
+const MODEL_ESTIMATED_TIMES = {
+  tiny: 3, // 3 minutos - Nivel 1 (más rápido)
+  base: 5, // 5 minutos - Nivel 2 (equilibrado)
+  small: 8, // 8 minutos - Nivel 3 (buena calidad)
+  medium: 12, // 12 minutos - Nivel 4 (alta calidad)
+  "large-v1": 16, // 16 minutos - Nivel 5 (máxima calidad v1)
+  "large-v2": 18, // 18 minutos - Nivel 6 (máxima calidad v2)
+  "large-v3": 20, // 20 minutos - Nivel 7 (máxima calidad v3)
+  large: 22, // 22 minutos - Nivel 8 (máxima calidad última)
+  turbo: 10, // 10 minutos - Nivel 9 (optimizado, más rápido que large)
+};
+
+// Función para obtener tiempo estimado según el modelo (en minutos)
+const getEstimatedTimeForModel = (model?: string): number => {
+  if (!model) return MODEL_ESTIMATED_TIMES.base; // Tiempo estimado por defecto
+  return (
+    MODEL_ESTIMATED_TIMES[model as keyof typeof MODEL_ESTIMATED_TIMES] ||
+    MODEL_ESTIMATED_TIMES.base
+  );
+};
+
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api/v1`,
-  timeout: 300000, // 5 minutos para archivos grandes
+  timeout: 0, // Sin timeout - permitir que la transcripción tome el tiempo que necesite
 });
 
 export class TranscriptionService {
@@ -34,8 +56,18 @@ export class TranscriptionService {
       formData.append("task", options.task);
     }
 
+    // Obtener tiempo estimado según el modelo
+    const estimatedTime = getEstimatedTimeForModel(options.model);
+
+    console.log(
+      `🕒 Tiempo estimado para modelo "${
+        options.model || "base"
+      }": ${estimatedTime} minutos`
+    );
+
     try {
       const response = await api.post("/transcribe", formData, {
+        // No establecemos timeout para permitir que la transcripción tome el tiempo necesario
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -83,7 +115,10 @@ export class TranscriptionService {
     }
   }
 
-  static async checkHealth(): Promise<{ status: string; [key: string]: any }> {
+  static async checkHealth(): Promise<{
+    status: string;
+    [key: string]: unknown;
+  }> {
     try {
       const response = await api.get("/health");
       return response.data;
@@ -134,4 +169,15 @@ export const isAudioFile = (file: File): boolean => {
     audioTypes.includes(file.type) ||
     /\.(mp3|wav|flac|m4a|ogg|wma|aac)$/i.test(file.name)
   );
+};
+
+// Nueva función utilitaria para obtener información de tiempo estimado
+export const getModelTimeoutInfo = (
+  model: string
+): { estimatedTime: number; minutes: number } => {
+  const minutes = getEstimatedTimeForModel(model);
+  return {
+    estimatedTime: minutes * 60000, // Convertir a milisegundos para mantener compatibilidad
+    minutes,
+  };
 };

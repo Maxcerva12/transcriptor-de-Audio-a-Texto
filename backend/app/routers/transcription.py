@@ -44,8 +44,8 @@ async def transcribe_audio(
         upload_dir = os.getenv("UPLOAD_DIR", "uploads")
         file_path = await save_uploaded_file(file, upload_dir)
         
-        # Transcribir
-        result = whisper_service.transcribe_audio(
+        # Transcribir de forma asíncrona
+        result = await whisper_service.transcribe_audio_async(
             audio_path=file_path,
             model_name=model,
             language=language,
@@ -76,7 +76,7 @@ async def transcribe_audio(
 @router.get("/models")
 async def get_available_models():
     """
-    Obtiene la lista de modelos disponibles
+    Obtiene la lista de modelos disponibles ordenados por eficiencia
     """
     try:
         models = whisper_service.get_available_models()
@@ -84,11 +84,13 @@ async def get_available_models():
             "models": models,
             "default": "base",
             "recommended": {
-                "speed": "tiny",
+                "fastest": "tiny",
                 "balanced": "base", 
                 "quality": "small",
-                "best": "medium"
-            }
+                "high_quality": "medium",
+                "best": "large"
+            },
+            "order_info": "Modelos ordenados de menor a mayor eficiencia (tiny → large/turbo)"
         }
     except Exception as e:
         logger.error(f"Error obteniendo modelos: {str(e)}")

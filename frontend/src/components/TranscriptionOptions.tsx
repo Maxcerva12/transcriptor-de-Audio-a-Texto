@@ -10,7 +10,11 @@ interface TranscriptionOptionsProps {
     language: string;
     task: "transcribe" | "translate";
   };
-  onOptionsChange: (options: any) => void;
+  onOptionsChange: (options: {
+    model: string;
+    language: string;
+    task: "transcribe" | "translate";
+  }) => void;
   disabled?: boolean;
 }
 
@@ -62,12 +66,16 @@ export const TranscriptionOptions: React.FC<TranscriptionOptionsProps> = ({
     if (!modelInfo) return "";
 
     const descriptions: Record<string, string> = {
-      tiny: "Más rápido, menos preciso",
-      base: "Equilibrado (recomendado)",
-      small: "Buena calidad",
-      medium: "Alta calidad",
-      large: "Máxima calidad",
-      turbo: "Rápido con buena calidad",
+      tiny: "Nivel 1: Más rápido, menos preciso (⏱️ Listo en ~3 min)",
+      base: "Nivel 2: Equilibrado (recomendado) (⏱️ Listo en ~5 min)",
+      small: "Nivel 3: Buena calidad (⏱️ Listo en ~8 min)",
+      medium: "Nivel 4: Alta calidad (⏱️ Listo en ~12 min)",
+      "large-v1": "Nivel 5: Máxima calidad (v1) (⏱️ Listo en ~16 min)",
+      "large-v2": "Nivel 6: Máxima calidad (v2) (⏱️ Listo en ~18 min)",
+      "large-v3": "Nivel 7: Máxima calidad (v3) (⏱️ Listo en ~20 min)",
+      large: "Nivel 8: Máxima calidad (última versión) (⏱️ Listo en ~22 min)",
+      turbo:
+        "Nivel 9: Optimizado de large-v3 (más rápido) (⏱️ Listo en ~10 min)",
     };
 
     return descriptions[model] || "";
@@ -110,13 +118,24 @@ export const TranscriptionOptions: React.FC<TranscriptionOptionsProps> = ({
             ))}
           </select>
           <p className="mt-1 text-xs text-gray-500">
-            {options.model === "tiny" && "⚡ Más rápido pero menos preciso"}
+            {options.model === "tiny" &&
+              "⚡ Nivel 1 - Más rápido pero menos preciso (⏱️ Su transcripción estará lista en ~3 minutos)"}
             {options.model === "base" &&
-              "⚖️ Equilibrado entre velocidad y calidad"}
-            {options.model === "small" && "🎯 Buena calidad de transcripción"}
-            {options.model === "medium" && "🔥 Alta calidad, más lento"}
-            {options.model === "large" && "⭐ Máxima calidad, muy lento"}
-            {options.model === "turbo" && "🚀 Rápido con buena calidad"}
+              "⚖️ Nivel 2 - Equilibrado entre velocidad y calidad (⏱️ Su transcripción estará lista en ~5 minutos)"}
+            {options.model === "small" &&
+              "🎯 Nivel 3 - Buena calidad de transcripción (⏱️ Su transcripción estará lista en ~8 minutos)"}
+            {options.model === "medium" &&
+              "🔥 Nivel 4 - Alta calidad, más lento (⏱️ Su transcripción estará lista en ~12 minutos)"}
+            {options.model === "large-v1" &&
+              "⭐ Nivel 5 - Máxima calidad v1, muy lento (⏱️ Su transcripción estará lista en ~16 minutos)"}
+            {options.model === "large-v2" &&
+              "⭐ Nivel 6 - Máxima calidad v2, muy lento (⏱️ Su transcripción estará lista en ~18 minutos)"}
+            {options.model === "large-v3" &&
+              "⭐ Nivel 7 - Máxima calidad v3, muy lento (⏱️ Su transcripción estará lista en ~20 minutos)"}
+            {options.model === "large" &&
+              "⭐ Nivel 8 - Máxima calidad (última versión), muy lento (⏱️ Su transcripción estará lista en ~22 minutos)"}
+            {options.model === "turbo" &&
+              "🚀 Nivel 9 - Optimizado de large-v3, rápido con excelente calidad (⏱️ Su transcripción estará lista en ~10 minutos)"}
           </p>
         </div>
 
@@ -174,15 +193,45 @@ export const TranscriptionOptions: React.FC<TranscriptionOptionsProps> = ({
         </div>
       </div>
 
-      {/* Advertencia para turbo con traducción */}
+      {/* Advertencia importante para turbo con traducción */}
       {options.model === "turbo" && options.task === "translate" && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
           <div className="flex">
             <div className="ml-3">
               <p className="text-sm text-yellow-700">
-                <strong>Nota:</strong> El modelo turbo no está optimizado para
-                traducción. Para mejores resultados de traducción, usa los
-                modelos medium o large.
+                <strong>⚠️ Importante:</strong> El modelo turbo{" "}
+                <strong>NO está entrenado para traducción</strong>. Para
+                traducir a inglés, usa los modelos <strong>medium</strong> o{" "}
+                <strong>large</strong>
+                que sí soportan la tarea de traducción.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Información sobre tiempos estimados para modelos avanzados */}
+      {(options.model === "medium" ||
+        options.model === "large-v1" ||
+        options.model === "large-v2" ||
+        options.model === "large-v3" ||
+        options.model === "large") && (
+        <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+          <div className="flex">
+            <div className="ml-3">
+              <p className="text-sm text-blue-700">
+                <strong>🕒 Tiempo de procesamiento estimado:</strong> Has
+                seleccionado un modelo de alta calidad. La transcripción se
+                completará en aproximadamente{" "}
+                <strong>
+                  {options.model === "medium" && "12 minutos"}
+                  {options.model === "large-v1" && "16 minutos"}
+                  {options.model === "large-v2" && "18 minutos"}
+                  {options.model === "large-v3" && "20 minutos"}
+                  {options.model === "large" && "22 minutos"}
+                </strong>{" "}
+                dependiendo del tamaño y la complejidad del archivo de audio. No
+                hay tiempo límite, el proceso continuará hasta completarse.
               </p>
             </div>
           </div>

@@ -57,7 +57,10 @@ app = FastAPI(
 )
 
 # Configurar CORS
-origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+origins = [
+    "http://localhost:3000",
+    "https://transcriptor-de-audio-a-texto.vercel.app"
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

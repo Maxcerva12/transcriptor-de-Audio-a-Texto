@@ -9,9 +9,12 @@ Una aplicación web completa que permite transcribir archivos de audio a texto d
 - ✅ **Transcripción precisa** con modelos Whisper de OpenAI
 - ✅ **Múltiples formatos** de audio soportados (MP3, WAV, FLAC, M4A, OGG, WMA, AAC)
 - ✅ **Interfaz drag & drop** intuitiva y moderna
-- ✅ **6 modelos diferentes** para equilibrar velocidad y calidad
+- ✅ **9 modelos diferentes** para equilibrar velocidad y calidad (tiny → turbo)
 - ✅ **Detección automática** de idioma
 - ✅ **Traducción** al inglés disponible
+- ✅ **Cancelación en tiempo real** de transcripciones en proceso
+- ✅ **Tiempos estimados** sin límites de timeout
+- ✅ **Modelos pre-instalados** para despliegue rápido
 - ✅ **Descarga de resultados** en texto plano
 - ✅ **Segmentos detallados** con timestamps
 - ✅ **Totalmente gratuito** y open source
@@ -95,14 +98,17 @@ La aplicación estará disponible en: http://localhost:3000
 
 ## 🎯 Modelos Disponibles
 
-| Modelo | Parámetros | VRAM  | Velocidad | Recomendado para    |
-| ------ | ---------- | ----- | --------- | ------------------- |
-| tiny   | 39M        | ~1GB  | ~10x      | ⚡ Pruebas rápidas  |
-| base   | 74M        | ~1GB  | ~7x       | ⚖️ Uso general      |
-| small  | 244M       | ~2GB  | ~4x       | 🎯 Buena calidad    |
-| medium | 769M       | ~5GB  | ~2x       | 🔥 Alta calidad     |
-| large  | 1550M      | ~10GB | 1x        | ⭐ Máxima calidad   |
-| turbo  | 809M       | ~6GB  | ~8x       | 🚀 Rápido + calidad |
+| Modelo    | Nivel | Tiempo Estimado | Parámetros | Recomendado para              |
+|-----------|-------|----------------|------------|-------------------------------|
+| tiny      | 1     | ~3 min         | 39M        | ⚡ Pruebas rápidas           |
+| base      | 2     | ~5 min         | 74M        | ⚖️ Uso general (recomendado) |
+| small     | 3     | ~8 min         | 244M       | 🎯 Buena calidad             |
+| medium    | 4     | ~12 min        | 769M       | 🔥 Alta calidad              |
+| large-v1  | 5     | ~16 min        | 1550M      | ⭐ Máxima calidad v1         |
+| large-v2  | 6     | ~18 min        | 1550M      | ⭐ Máxima calidad v2         |
+| large-v3  | 7     | ~20 min        | 1550M      | ⭐ Máxima calidad v3         |
+| large     | 8     | ~22 min        | 1550M      | ⭐ Máxima calidad (última)   |
+| turbo     | 9     | ~10 min        | 809M       | 🚀 Rápido + calidad         |
 
 ## 📁 Estructura del Proyecto
 
@@ -184,6 +190,96 @@ npm run dev                # Desarrollo
 npm run build              # Construir
 npm run lint               # Linting
 ```
+
+## 🚀 Despliegue en Producción
+
+### Nuevas funcionalidades implementadas:
+
+#### ✅ Cancelación de Transcripción
+- Botón "X" para cancelar transcripción en tiempo real
+- API endpoint para cancelación (`DELETE /api/v1/transcribe/{task_id}`)
+- Manejo seguro de tareas asíncronas
+
+#### ✅ Modelos Pre-instalados
+- Todos los modelos Whisper descargados durante el build
+- Sin esperas de descarga para usuarios finales
+- Configuración automática según entorno
+
+#### ✅ Tiempos Estimados (Sin Timeouts)
+- Información de tiempo estimado por modelo
+- Sin límites que interrumpan la transcripción
+- Proceso continúa hasta completarse
+
+### Backend (Render/Railway/Fly.io)
+
+**Variables de entorno requeridas:**
+```bash
+ENVIRONMENT=production  # Activa pre-carga de todos los modelos
+ALLOWED_ORIGINS=https://tu-frontend.vercel.app
+PORT=8000
+DEBUG=False
+```
+
+**Pasos para desplegar:**
+
+1. **Render/Railway:** 
+   - Conecta tu repositorio GitHub
+   - Configura las variables de entorno
+   - El servicio ejecutará automáticamente `python run.py`
+
+2. **Script de pre-instalación:**
+   ```bash
+   # En tu servidor, ejecuta una sola vez:
+   python preinstall_models.py
+   ```
+
+   Esto descarga todos los modelos Whisper y los deja listos para usar.
+
+**Archivo de configuración para servicios (render.yaml):**
+```yaml
+services:
+  - type: web
+    name: transcriptor-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt && python preinstall_models.py"
+    startCommand: "python run.py"
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+```
+
+### Frontend (Vercel/Netlify)
+
+**Variables de entorno:**
+```bash
+NEXT_PUBLIC_API_URL=https://tu-backend.render.com
+```
+
+### Modelos y tiempos estimados:
+
+| Modelo | Nivel | Tiempo Estimado | Descripción |
+|--------|-------|----------------|-------------|
+| tiny | 1 | ~3 min | Más rápido, menos preciso |
+| base | 2 | ~5 min | Equilibrado (recomendado) |
+| small | 3 | ~8 min | Buena calidad |
+| medium | 4 | ~12 min | Alta calidad |
+| large-v1 | 5 | ~16 min | Máxima calidad v1 |
+| large-v2 | 6 | ~18 min | Máxima calidad v2 |
+| large-v3 | 7 | ~20 min | Máxima calidad v3 |
+| large | 8 | ~22 min | Máxima calidad (última) |
+| turbo | 9 | ~10 min | Optimizado, rápido |
+
+### Servicios de despliegue recomendados:
+
+**Backend:**
+- **Render**: Deploy automático desde GitHub
+- **Railway**: Fácil configuración
+- **Fly.io**: Alta performance
+
+**Frontend:**
+- **Vercel**: Optimizado para Next.js
+- **Netlify**: Simple y rápido
+- **Cloudflare Pages**: CDN global
 
 ## 📝 Licencia
 

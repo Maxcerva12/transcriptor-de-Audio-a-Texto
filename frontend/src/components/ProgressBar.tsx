@@ -1,5 +1,7 @@
 "use client";
 
+import { Progress } from "@/components/ui/progress";
+
 interface ProgressBarProps {
   progress: number;
   label?: string;
@@ -15,19 +17,17 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     <div className="w-full space-y-2">
       {label && (
         <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-gray-700">{label}</span>
+          <span className="text-sm font-medium">{label}</span>
           {showPercentage && (
-            <span className="text-sm text-gray-500">{progress}%</span>
+            <span className="text-sm text-muted-foreground">{progress}%</span>
           )}
         </div>
       )}
 
-      <div className="w-full bg-gray-200 rounded-full h-2">
-        <div
-          className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
-          style={{ width: `${Math.min(progress, 100)}%` }}
-        />
-      </div>
+      <Progress 
+        value={Math.min(progress, 100)} 
+        className="h-2 transition-all duration-300"
+      />
     </div>
   );
 };

@@ -4,6 +4,9 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload, FileAudio, X, AlertCircle } from "lucide-react";
 import { isAudioFile, formatFileSize } from "@/services/transcription";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface FileDropzoneProps {
   onFileSelect: (file: File) => void;
@@ -63,71 +66,73 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
 
   if (selectedFile) {
     return (
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+      <Card className="border-2 border-dashed p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <FileAudio className="w-8 h-8 text-blue-500" />
+            <FileAudio className="w-8 h-8 text-primary" />
             <div>
-              <p className="font-medium text-gray-900">{selectedFile.name}</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-foreground">{selectedFile.name}</p>
+              <p className="text-sm text-muted-foreground">
                 {formatFileSize(selectedFile.size)}
               </p>
             </div>
           </div>
           {onRemoveFile && (
-            <button
+            <Button 
+              variant="ghost" 
+              size="icon"
               onClick={onRemoveFile}
-              className="p-2 text-gray-400 hover:text-red-500 transition-colors"
               disabled={disabled}
+              className="text-muted-foreground hover:text-destructive"
             >
               <X className="w-5 h-5" />
-            </button>
+              <span className="sr-only">Eliminar archivo</span>
+            </Button>
           )}
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
     <div
       {...getRootProps()}
-      className={`
-        border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer
-        ${
-          isDragActive
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-300 hover:border-gray-400"
-        }
-        ${disabled ? "cursor-not-allowed opacity-50" : ""}
-      `}
+      className={cn(
+        "border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer",
+        isDragActive 
+          ? "border-primary bg-primary/5" 
+          : "border-border hover:border-primary/50",
+        disabled ? "cursor-not-allowed opacity-50" : ""
+      )}
     >
       <input {...getInputProps()} />
 
       <Upload
-        className={`w-12 h-12 mx-auto mb-4 ${
-          isDragActive ? "text-blue-500" : "text-gray-400"
-        }`}
+        className={cn(
+          "w-12 h-12 mx-auto mb-4",
+          isDragActive ? "text-primary" : "text-muted-foreground"
+        )}
       />
 
       <div className="space-y-2">
-        <p className="text-lg font-medium text-gray-900">
+        <p className="text-lg font-medium text-foreground">
           {isDragActive
             ? "Suelta el archivo aquí"
             : "Arrastra un archivo de audio"}
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           o{" "}
-          <span className="text-blue-500 font-medium">
+          <span className="text-primary font-medium">
             haz clic para seleccionar
           </span>
         </p>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-muted-foreground/70">
           Formatos soportados: MP3, WAV, FLAC, M4A, OGG, WMA, AAC (máx. 100MB)
         </p>
       </div>
 
       {error && (
-        <div className="mt-4 flex items-center justify-center space-x-2 text-red-600">
+        <div className="mt-4 flex items-center justify-center space-x-2 text-destructive">
           <AlertCircle className="w-4 h-4" />
           <span className="text-sm">{error}</span>
         </div>

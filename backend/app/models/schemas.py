@@ -20,6 +20,7 @@ class TranscriptionResponse(BaseModel):
     language: str
     duration: float
     segments: Optional[List[dict]] = None
+    task_id: Optional[str] = None  # ID de la tarea para cancelación
 
 class ErrorResponse(BaseModel):
     error: str

@@ -3,9 +3,10 @@ import torch
 import os
 import logging
 import threading
+import asyncio
 from typing import Optional, Dict, Any
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, Future
 from threading import Lock
 
 logger = logging.getLogger(__name__)
@@ -16,6 +17,8 @@ class WhisperService:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model_lock = Lock()  # Lock para acceso thread-safe a los modelos
         self.executor = ThreadPoolExecutor(max_workers=4)  # Pool de hilos
+        self.active_tasks: Dict[str, Future] = {}  # Tareas activas para cancelación
+        self.task_lock = Lock()  # Lock para manejo de tareas
         logger.info(f"Usando dispositivo: {self.device}")
         logger.info(f"ThreadPoolExecutor inicializado con 4 workers")
 
@@ -90,7 +93,8 @@ class WhisperService:
         audio_path: str, 
         model_name: str = "base",
         language: Optional[str] = None,
-        task: str = "transcribe"
+        task: str = "transcribe",
+        task_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Transcribe un archivo de audio usando Whisper de forma asíncrona
@@ -100,6 +104,7 @@ class WhisperService:
             model_name: Modelo de Whisper a usar
             language: Idioma del audio (opcional, se detecta automáticamente)
             task: 'transcribe' o 'translate'
+            task_id: ID único para la tarea (para cancelación)
         
         Returns:
             Diccionario con el resultado de la transcripción
@@ -107,8 +112,8 @@ class WhisperService:
         import asyncio
         loop = asyncio.get_event_loop()
         
-        # Ejecutar la transcripción en el thread pool
-        return await loop.run_in_executor(
+        # Crear future para la transcripción
+        future = loop.run_in_executor(
             self.executor, 
             self.transcribe_audio, 
             audio_path, 
@@ -116,6 +121,47 @@ class WhisperService:
             language, 
             task
         )
+        
+        # Registrar la tarea si se proporciona un ID
+        if task_id:
+            with self.task_lock:
+                self.active_tasks[task_id] = future
+                
+        try:
+            result = await future
+            return result
+        except asyncio.CancelledError:
+            logger.info(f"Transcripción cancelada para tarea {task_id}")
+            raise
+        finally:
+            # Limpiar la tarea del registro
+            if task_id:
+                with self.task_lock:
+                    self.active_tasks.pop(task_id, None)
+    
+    def cancel_transcription(self, task_id: str) -> bool:
+        """
+        Cancela una transcripción en progreso
+        
+        Args:
+            task_id: ID de la tarea a cancelar
+            
+        Returns:
+            True si se pudo cancelar, False si no existe o ya terminó
+        """
+        with self.task_lock:
+            if task_id in self.active_tasks:
+                future = self.active_tasks[task_id]
+                if not future.done():
+                    future.cancel()
+                    logger.info(f"Transcripción {task_id} cancelada")
+                    return True
+                else:
+                    logger.info(f"Transcripción {task_id} ya había terminado")
+                    return False
+            else:
+                logger.warning(f"Tarea {task_id} no encontrada")
+                return False
 
     def _get_audio_duration(self, result: Dict[str, Any]) -> float:
         """Extrae la duración del audio del resultado"""
@@ -124,6 +170,31 @@ class WhisperService:
             return segments[-1].get("end", 0.0)
         return 0.0
 
+    def preload_all_models(self):
+        """Pre-carga todos los modelos Whisper para despliegue"""
+        models_to_preload = ["tiny", "base", "small", "medium", "large-v1", "large-v2", "large-v3", "large"]
+        
+        # Intentar cargar también turbo si está disponible
+        try:
+            import whisper
+            available = whisper.available_models()
+            if "turbo" in available:
+                models_to_preload.append("turbo")
+        except Exception:
+            pass
+        
+        logger.info("Iniciando pre-carga de todos los modelos Whisper...")
+        
+        for model_name in models_to_preload:
+            try:
+                logger.info(f"Pre-cargando modelo: {model_name}")
+                self.load_model(model_name)
+                logger.info(f"✅ Modelo {model_name} pre-cargado exitosamente")
+            except Exception as e:
+                logger.warning(f"❌ No se pudo pre-cargar el modelo {model_name}: {e}")
+        
+        logger.info("Pre-carga de modelos completada")
+    
     def get_available_models(self) -> list:
         """Retorna la lista de modelos disponibles ordenados por eficiencia (menor a mayor)"""
         # Orden de eficiencia: tiny < base < small < medium < large-v1 < large-v2 < large-v3 < large < turbo

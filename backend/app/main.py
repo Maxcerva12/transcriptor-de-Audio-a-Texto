@@ -25,11 +25,18 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Iniciando aplicación Transquitor")
     try:
-        # Pre-cargar modelo base
-        whisper_service.load_model("base")
-        logger.info("Modelo base pre-cargado")
+        # Verificar si estamos en producción (despliegue)
+        is_production = os.getenv("ENVIRONMENT", "development").lower() == "production"
+        
+        if is_production:
+            logger.info("Modo producción detectado - Pre-cargando todos los modelos...")
+            whisper_service.preload_all_models()
+        else:
+            # En desarrollo, solo pre-cargar modelo base
+            whisper_service.load_model("base")
+            logger.info("Modelo base pre-cargado (modo desarrollo)")
     except Exception as e:
-        logger.warning(f"No se pudo pre-cargar el modelo: {e}")
+        logger.warning(f"Error durante la pre-carga de modelos: {e}")
     
     yield
     
@@ -55,7 +62,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS"],
     allow_headers=["*"],
 )
 

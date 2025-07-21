@@ -39,15 +39,15 @@ export const TranscriptionResult: React.FC<TranscriptionResultProps> = ({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+    <div className="rounded-lg border shadow-sm">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-6 py-4 border-b">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold">
               Transcripción Completada
             </h3>
-            <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500">
+            <div className="mt-1 flex items-center space-x-4 text-sm text-muted-foreground">
               <span>Idioma: {result.language}</span>
               <span>Duración: {formatDuration(result.duration)}</span>
               {fileName && <span>Archivo: {fileName}</span>}
@@ -57,7 +57,7 @@ export const TranscriptionResult: React.FC<TranscriptionResultProps> = ({
           <div className="flex space-x-2">
             <button
               onClick={handleCopy}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-3 py-2 border rounded-md text-sm font-medium bg-background hover:bg-accent transition-colors focus:outline-none"
             >
               {copied ? (
                 <>
@@ -74,7 +74,7 @@ export const TranscriptionResult: React.FC<TranscriptionResultProps> = ({
 
             <button
               onClick={handleDownload}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-3 py-2 border rounded-md text-sm font-medium bg-background hover:bg-accent transition-colors focus:outline-none"
             >
               <Download className="w-4 h-4 mr-2" />
               Descargar
@@ -85,8 +85,8 @@ export const TranscriptionResult: React.FC<TranscriptionResultProps> = ({
 
       {/* Content */}
       <div className="px-6 py-4">
-        <div className="bg-gray-50 rounded-lg p-4">
-          <pre className="whitespace-pre-wrap text-sm text-gray-900 font-mono leading-relaxed">
+        <div className="bg-muted/40 rounded-lg p-4">
+          <pre className="whitespace-pre-wrap text-sm font-mono leading-relaxed">
             {result.text}
           </pre>
         </div>
@@ -94,9 +94,9 @@ export const TranscriptionResult: React.FC<TranscriptionResultProps> = ({
 
       {/* Segments (if available) */}
       {result.segments && result.segments.length > 0 && (
-        <div className="px-6 py-4 border-t border-gray-200">
+        <div className="px-6 py-4 border-t">
           <details className="group">
-            <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center">
+            <summary className="cursor-pointer text-sm font-medium hover:text-foreground/80 flex items-center">
               Ver segmentos detallados
               <span className="ml-2 transform group-open:rotate-180 transition-transform">
                 ▼
@@ -109,11 +109,11 @@ export const TranscriptionResult: React.FC<TranscriptionResultProps> = ({
                   key={segment.id || index}
                   className="flex items-start space-x-3 text-xs"
                 >
-                  <div className="flex-shrink-0 text-gray-500 font-mono">
+                  <div className="flex-shrink-0 text-muted-foreground font-mono">
                     {formatDuration(segment.start)} -{" "}
                     {formatDuration(segment.end)}
                   </div>
-                  <div className="flex-1 text-gray-700">
+                  <div className="flex-1">
                     {segment.text.trim()}
                   </div>
                 </div>

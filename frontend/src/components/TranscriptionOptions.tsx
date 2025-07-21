@@ -3,6 +3,19 @@
 import { useState, useEffect } from "react";
 import { ModelInfo } from "@/types";
 import { TranscriptionService } from "@/services/transcription";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+// Eliminamos la importación de los componentes Form ya que los estamos reemplazando por HTML nativo
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle, Info } from "lucide-react";
 
 interface TranscriptionOptionsProps {
   options: {
@@ -19,7 +32,7 @@ interface TranscriptionOptionsProps {
 }
 
 const COMMON_LANGUAGES = [
-  { code: "", name: "Detectar automáticamente" },
+  { code: "auto", name: "Detectar automáticamente" },
   { code: "es", name: "Español" },
   { code: "en", name: "Inglés" },
   { code: "fr", name: "Francés" },
@@ -83,131 +96,140 @@ export const TranscriptionOptions: React.FC<TranscriptionOptionsProps> = ({
 
   if (loading) {
     return (
-      <div className="bg-gray-50 rounded-lg p-4">
-        <p className="text-gray-500">Cargando opciones...</p>
-      </div>
+      <Card className="p-4">
+        <CardContent className="pt-4">
+          <p className="text-muted-foreground">Cargando opciones...</p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-gray-50 rounded-lg p-6 space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900">
-        Opciones de Transcripción
-      </h3>
+    <Card>
+      <CardHeader>
+        <CardTitle>Opciones de Transcripción</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Modelo */}
+          <div className="space-y-2">
+            <div>
+              <label className="text-sm font-medium leading-none mb-2 block">
+                Modelo Whisper
+              </label>
+              <Select
+                value={options.model}
+                onValueChange={(value) => handleChange("model", value)}
+                disabled={disabled}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccionar modelo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {modelInfo?.models.map((model) => (
+                      <SelectItem key={model} value={model}>
+                        {model}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {options.model === "tiny" &&
+                  "⚡ Nivel 1 - Más rápido pero menos preciso (⏱️ ~3 minutos)"}
+                {options.model === "base" &&
+                  "⚖️ Nivel 2 - Equilibrado entre velocidad y calidad (⏱️ ~5 minutos)"}
+                {options.model === "small" &&
+                  "🎯 Nivel 3 - Buena calidad (⏱️ ~8 minutos)"}
+                {options.model === "medium" &&
+                  "🔥 Nivel 4 - Alta calidad (⏱️ ~12 minutos)"}
+                {options.model === "large-v1" &&
+                  "⭐ Nivel 5 - Máxima calidad v1 (⏱️ ~16 minutos)"}
+                {options.model === "large-v2" &&
+                  "⭐ Nivel 6 - Máxima calidad v2 (⏱️ ~18 minutos)"}
+                {options.model === "large-v3" &&
+                  "⭐ Nivel 7 - Máxima calidad v3 (⏱️ ~20 minutos)"}
+                {options.model === "large" &&
+                  "⭐ Nivel 8 - Máxima calidad (última versión) (⏱️ ~22 minutos)"}
+                {options.model === "turbo" &&
+                  "🚀 Nivel 9 - Optimizado de large-v3, rápido con excelente calidad (⏱️ ~10 minutos)"}
+              </p>
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Modelo */}
-        <div>
-          <label
-            htmlFor="model"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Modelo Whisper
-          </label>
-          <select
-            id="model"
-            value={options.model}
-            onChange={(e) => handleChange("model", e.target.value)}
-            disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-          >
-            {modelInfo?.models.map((model) => (
-              <option key={model} value={model}>
-                {model} - {getModelDescription(model)}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-gray-500">
-            {options.model === "tiny" &&
-              "⚡ Nivel 1 - Más rápido pero menos preciso (⏱️ Su transcripción estará lista en ~3 minutos)"}
-            {options.model === "base" &&
-              "⚖️ Nivel 2 - Equilibrado entre velocidad y calidad (⏱️ Su transcripción estará lista en ~5 minutos)"}
-            {options.model === "small" &&
-              "🎯 Nivel 3 - Buena calidad de transcripción (⏱️ Su transcripción estará lista en ~8 minutos)"}
-            {options.model === "medium" &&
-              "🔥 Nivel 4 - Alta calidad, más lento (⏱️ Su transcripción estará lista en ~12 minutos)"}
-            {options.model === "large-v1" &&
-              "⭐ Nivel 5 - Máxima calidad v1, muy lento (⏱️ Su transcripción estará lista en ~16 minutos)"}
-            {options.model === "large-v2" &&
-              "⭐ Nivel 6 - Máxima calidad v2, muy lento (⏱️ Su transcripción estará lista en ~18 minutos)"}
-            {options.model === "large-v3" &&
-              "⭐ Nivel 7 - Máxima calidad v3, muy lento (⏱️ Su transcripción estará lista en ~20 minutos)"}
-            {options.model === "large" &&
-              "⭐ Nivel 8 - Máxima calidad (última versión), muy lento (⏱️ Su transcripción estará lista en ~22 minutos)"}
-            {options.model === "turbo" &&
-              "🚀 Nivel 9 - Optimizado de large-v3, rápido con excelente calidad (⏱️ Su transcripción estará lista en ~10 minutos)"}
-          </p>
-        </div>
+          {/* Idioma */}
+          <div className="space-y-2">
+            <div>
+              <label className="text-sm font-medium leading-none mb-2 block">
+                Idioma del Audio
+              </label>
+              <Select
+                value={options.language}
+                onValueChange={(value) => handleChange("language", value)}
+                disabled={disabled}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccionar idioma" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {COMMON_LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.code} value={lang.code}>
+                        {lang.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                La detección automática funciona bien en la mayoría de casos
+              </p>
+            </div>
+          </div>
 
-        {/* Idioma */}
-        <div>
-          <label
-            htmlFor="language"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Idioma del Audio
-          </label>
-          <select
-            id="language"
-            value={options.language}
-            onChange={(e) => handleChange("language", e.target.value)}
-            disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-          >
-            {COMMON_LANGUAGES.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.name}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-gray-500">
-            La detección automática funciona bien en la mayoría de casos
-          </p>
-        </div>
-
-        {/* Tarea */}
-        <div>
-          <label
-            htmlFor="task"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Tarea
-          </label>
-          <select
-            id="task"
-            value={options.task}
-            onChange={(e) =>
-              handleChange("task", e.target.value as "transcribe" | "translate")
-            }
-            disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-          >
-            <option value="transcribe">Transcribir</option>
-            <option value="translate">Traducir al Inglés</option>
-          </select>
-          <p className="mt-1 text-xs text-gray-500">
-            {options.task === "transcribe"
-              ? "Convierte audio a texto en el mismo idioma"
-              : "Convierte audio a texto en inglés"}
-          </p>
-        </div>
-      </div>
-
-      {/* Advertencia importante para turbo con traducción */}
-      {options.model === "turbo" && options.task === "translate" && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <p className="text-sm text-yellow-700">
-                <strong>⚠️ Importante:</strong> El modelo turbo{" "}
-                <strong>NO está entrenado para traducción</strong>. Para
-                traducir a inglés, usa los modelos <strong>medium</strong> o{" "}
-                <strong>large</strong>
-                que sí soportan la tarea de traducción.
+          {/* Tarea */}
+          <div className="space-y-2">
+            <div>
+              <label className="text-sm font-medium leading-none mb-2 block">
+                Tarea
+              </label>
+              <Select
+                value={options.task}
+                onValueChange={(value) => handleChange("task", value as "transcribe" | "translate")}
+                disabled={disabled}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccionar tarea" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="transcribe">Transcribir</SelectItem>
+                    <SelectItem value="translate">Traducir al Inglés</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {options.task === "transcribe"
+                  ? "Convierte audio a texto en el mismo idioma"
+                  : "Convierte audio a texto en inglés"}
               </p>
             </div>
           </div>
         </div>
+
+      {/* Advertencia importante para turbo con traducción */}
+      {options.model === "turbo" && options.task === "translate" && (
+        <Alert variant="destructive" className="mt-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>⚠️ Importante:</strong> El modelo turbo{" "}
+            <strong>NO está entrenado para traducción</strong>. Para
+            traducir a inglés, usa los modelos <strong>medium</strong> o{" "}
+            <strong>large</strong>{" "}
+            que sí soportan la tarea de traducción.
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Información sobre tiempos estimados para modelos avanzados */}
@@ -216,27 +238,25 @@ export const TranscriptionOptions: React.FC<TranscriptionOptionsProps> = ({
         options.model === "large-v2" ||
         options.model === "large-v3" ||
         options.model === "large") && (
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <p className="text-sm text-blue-700">
-                <strong>🕒 Tiempo de procesamiento estimado:</strong> Has
-                seleccionado un modelo de alta calidad. La transcripción se
-                completará en aproximadamente{" "}
-                <strong>
-                  {options.model === "medium" && "12 minutos"}
-                  {options.model === "large-v1" && "16 minutos"}
-                  {options.model === "large-v2" && "18 minutos"}
-                  {options.model === "large-v3" && "20 minutos"}
-                  {options.model === "large" && "22 minutos"}
-                </strong>{" "}
-                dependiendo del tamaño y la complejidad del archivo de audio. No
-                hay tiempo límite, el proceso continuará hasta completarse.
-              </p>
-            </div>
-          </div>
-        </div>
+        <Alert className="mt-6">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <strong>🕒 Tiempo de procesamiento estimado:</strong> Has
+            seleccionado un modelo de alta calidad. La transcripción se
+            completará en aproximadamente{" "}
+            <strong>
+              {options.model === "medium" && "12 minutos"}
+              {options.model === "large-v1" && "16 minutos"}
+              {options.model === "large-v2" && "18 minutos"}
+              {options.model === "large-v3" && "20 minutos"}
+              {options.model === "large" && "22 minutos"}
+            </strong>{" "}
+            dependiendo del tamaño y la complejidad del archivo de audio. No
+            hay tiempo límite, el proceso continuará hasta completarse.
+          </AlertDescription>
+        </Alert>
       )}
-    </div>
+      </CardContent>
+    </Card>
   );
 };

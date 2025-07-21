@@ -35,11 +35,25 @@ const api = axios.create({
   timeout: 0, // Sin timeout - permitir que la transcripción tome el tiempo que necesite
 });
 
+// Función para generar UUID simple
+const generateUUID = (): string => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
 export class TranscriptionService {
+  static generateTaskId(): string {
+    return generateUUID();
+  }
+
   static async transcribeAudio(
     file: File,
     options: TranscriptionRequest = {},
-    onProgress?: (progress: UploadProgress) => void
+    onProgress?: (progress: UploadProgress) => void,
+    taskId?: string  // Permitir pasar el task_id desde el frontend
   ): Promise<TranscriptionResponse> {
     const formData = new FormData();
     formData.append("file", file);
@@ -48,12 +62,17 @@ export class TranscriptionService {
       formData.append("model", options.model);
     }
 
-    if (options.language) {
+    if (options.language && options.language !== "auto") {
       formData.append("language", options.language);
     }
 
     if (options.task) {
       formData.append("task", options.task);
+    }
+
+    // Si se proporciona un task_id, enviarlo al backend
+    if (taskId) {
+      formData.append("task_id", taskId);
     }
 
     // Obtener tiempo estimado según el modelo
@@ -93,6 +112,12 @@ export class TranscriptionService {
           error.response?.data?.detail ||
           error.response?.data?.error ||
           error.message;
+          
+        // Si es error 499 (cancelación), lanzar error específico
+        if (error.response?.status === 499) {
+          throw new Error("Transcripción cancelada por el usuario");
+        }
+        
         throw new Error(message);
       }
       throw error;
@@ -122,6 +147,21 @@ export class TranscriptionService {
     try {
       const response = await api.get("/health");
       return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          error.response?.data?.detail ||
+          error.response?.data?.error ||
+          error.message;
+        throw new Error(message);
+      }
+      throw error;
+    }
+  }
+
+  static async cancelTranscription(taskId: string): Promise<void> {
+    try {
+      await api.delete(`/transcribe/${taskId}`);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const message =
@@ -180,4 +220,9 @@ export const getModelTimeoutInfo = (
     estimatedTime: minutes * 60000, // Convertir a milisegundos para mantener compatibilidad
     minutes,
   };
+};
+
+// Función para obtener el tiempo estimado de procesamiento de un modelo
+export const getEstimatedProcessingTime = (model: string): number => {
+  return getEstimatedTimeForModel(model);
 };

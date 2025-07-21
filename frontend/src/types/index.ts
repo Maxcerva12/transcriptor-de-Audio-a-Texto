@@ -8,6 +8,7 @@ export interface TranscriptionResponse {
   text: string;
   language: string;
   duration: number;
+  task_id?: string;  // ID de la tarea para cancelación
   segments?: Array<{
     id: number;
     seek: number;

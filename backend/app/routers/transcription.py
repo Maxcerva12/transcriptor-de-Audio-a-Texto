@@ -2,6 +2,8 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Background
 from typing import Optional
 import logging
 import os
+import uuid
+import asyncio
 
 from ..models.schemas import TranscriptionResponse, ErrorResponse, WhisperModel
 from ..utils.whisper_service import whisper_service
@@ -16,14 +18,19 @@ async def transcribe_audio(
     file: UploadFile = File(..., description="Archivo de audio a transcribir"),
     model: Optional[str] = Form("base", description="Modelo de Whisper a usar"),
     language: Optional[str] = Form(None, description="Idioma del audio (opcional)"),
-    task: Optional[str] = Form("transcribe", description="Tarea: transcribe o translate")
+    task: Optional[str] = Form("transcribe", description="Tarea: transcribe o translate"),
+    task_id: Optional[str] = Form(None, description="ID único para la tarea (opcional)")
 ):
     """
     Transcribe un archivo de audio a texto usando Whisper
     """
     file_path = None
+    # Usar el task_id proporcionado o generar uno nuevo
+    if not task_id:
+        task_id = str(uuid.uuid4())
+    
     try:
-        logger.info(f"Iniciando transcripción - Archivo: {file.filename}, Modelo: {model}")
+        logger.info(f"Iniciando transcripción - Archivo: {file.filename}, Modelo: {model}, Task ID: {task_id}")
         
         # Validar modelo
         available_models = whisper_service.get_available_models()
@@ -44,12 +51,13 @@ async def transcribe_audio(
         upload_dir = os.getenv("UPLOAD_DIR", "uploads")
         file_path = await save_uploaded_file(file, upload_dir)
         
-        # Transcribir de forma asíncrona
+        # Transcribir de forma asíncrona con ID de tarea
         result = await whisper_service.transcribe_audio_async(
             audio_path=file_path,
             model_name=model,
             language=language,
-            task=task
+            task=task,
+            task_id=task_id
         )
         
         # Programar limpieza del archivo
@@ -59,7 +67,8 @@ async def transcribe_audio(
             text=result["text"],
             language=result["language"],
             duration=result["duration"],
-            segments=result.get("segments")
+            segments=result.get("segments"),
+            task_id=task_id  # Incluir el task_id en la respuesta
         )
         
     except HTTPException:
@@ -67,11 +76,35 @@ async def transcribe_audio(
         if file_path:
             cleanup_file(file_path)
         raise
+    except asyncio.CancelledError:
+        # Manejar cancelación específicamente
+        logger.info(f"Transcripción {task_id} fue cancelada por el usuario")
+        if file_path:
+            cleanup_file(file_path)
+        raise HTTPException(status_code=499, detail="Transcripción cancelada por el usuario")
     except Exception as e:
         logger.error(f"Error en transcripción: {str(e)}")
         if file_path:
             cleanup_file(file_path)
         raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+
+@router.delete("/transcribe/{task_id}")
+async def cancel_transcription(task_id: str):
+    """
+    Cancela una transcripción en progreso
+    """
+    try:
+        success = whisper_service.cancel_transcription(task_id)
+        if success:
+            return {"message": f"Transcripción {task_id} cancelada exitosamente"}
+        else:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Tarea {task_id} no encontrada o ya completada"
+            )
+    except Exception as e:
+        logger.error(f"Error cancelando transcripción {task_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error cancelando transcripción: {str(e)}")
 
 @router.get("/models")
 async def get_available_models():

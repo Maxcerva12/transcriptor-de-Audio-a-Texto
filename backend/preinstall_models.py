@@ -1,41 +1,30 @@
 #!/usr/bin/env python3
 """
-Script para pre-instalar todos los modelos Whisper
+Script para pre-instalar modelos Whisper seleccionados
 Útil para preparar el contenedor Docker o el entorno de producción
 """
 
 import whisper
 import logging
 import sys
+import gc
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Lista de todos los modelos a pre-instalar
+# Lista reducida de modelos a pre-instalar
 MODELS_TO_PREINSTALL = [
     "tiny",
     "base", 
     "small",
-    "medium",
-    "large-v1",
-    "large-v2", 
-    "large-v3",
-    "large"
+    "medium"
+    # Los modelos grandes se han eliminado para evitar problemas de memoria
 ]
 
 def preinstall_models():
-    """Pre-instala todos los modelos Whisper"""
-    logger.info("🚀 Iniciando pre-instalación de modelos Whisper...")
-    
-    # Verificar si turbo está disponible
-    try:
-        available = whisper.available_models()
-        if "turbo" in available:
-            MODELS_TO_PREINSTALL.append("turbo")
-            logger.info("✅ Modelo 'turbo' detectado y agregado a la lista")
-    except Exception as e:
-        logger.warning(f"⚠️  Error verificando disponibilidad de modelos: {e}")
+    """Pre-instala los modelos Whisper seleccionados"""
+    logger.info("🚀 Iniciando pre-instalación de modelos Whisper (versión reducida)...")
     
     success_count = 0
     total_count = len(MODELS_TO_PREINSTALL)
@@ -43,8 +32,11 @@ def preinstall_models():
     for model_name in MODELS_TO_PREINSTALL:
         try:
             logger.info(f"📥 Descargando modelo: {model_name}")
-            whisper.load_model(model_name)
+            model = whisper.load_model(model_name)
             logger.info(f"✅ {model_name} descargado exitosamente")
+            # Liberar memoria explícitamente después de cada descarga
+            del model
+            gc.collect()
             success_count += 1
         except Exception as e:
             logger.error(f"❌ Error descargando {model_name}: {e}")

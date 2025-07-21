@@ -3,12 +3,26 @@ services:
     name: transcriptor-backend
     env: python
     plan: starter
-    buildCommand: "pip install -r requirements.txt && python preinstall_models.py"
-    startCommand: "python run.py"
+    buildCommand: "pip install -r backend/requirements.txt && python backend/preinstall_models.py"
+    startCommand: "python backend/run.py"
     envVars:
       - key: ENVIRONMENT
         value: production
+      - key: HOST
+        value: 0.0.0.0
       - key: PORT
         sync: false
+      - key: DEBUG
+        value: false
+      - key: UPLOAD_DIR
+        value: uploads
+      - key: MAX_FILE_SIZE
+        value: 100
+      - key: DEFAULT_MODEL
+        value: base
+      - key: SUPPORTED_MODELS
+        value: tiny,base,small,medium,large,turbo
+      - key: ALLOWED_ORIGINS
+        value: https://tu-frontend-url.onrender.com
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: 3.12.0

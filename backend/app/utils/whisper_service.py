@@ -170,40 +170,8 @@ class WhisperService:
             return segments[-1].get("end", 0.0)
         return 0.0
 
-    def preload_all_models(self):
-        """Pre-carga todos los modelos Whisper para despliegue"""
-        
-        # Detectar si estamos en entorno Render
-        is_render = os.environ.get('RENDER', '') == 'true'
-        
-        if is_render:
-            # En Render solo pre-cargamos el modelo tiny para ahorrar memoria
-            models_to_preload = ["tiny"]
-            logger.info("🚀 Entorno Render detectado: modo memoria optimizada")
-        else:
-            # En otros entornos cargamos todos los modelos
-            models_to_preload = ["tiny", "base", "small", "medium", "large-v1", "large-v2", "large-v3", "large"]
-            
-            # Intentar cargar también turbo si está disponible
-            try:
-                import whisper
-                available = whisper.available_models()
-                if "turbo" in available:
-                    models_to_preload.append("turbo")
-            except Exception:
-                pass
-        
-        logger.info("Iniciando pre-carga de modelos Whisper...")
-        
-        for model_name in models_to_preload:
-            try:
-                logger.info(f"Pre-cargando modelo: {model_name}")
-                self.load_model(model_name)
-                logger.info(f"✅ Modelo {model_name} pre-cargado exitosamente")
-            except Exception as e:
-                logger.warning(f"❌ No se pudo pre-cargar el modelo {model_name}: {e}")
-        
-        logger.info("Pre-carga de modelos completada")
+    # ELIMINADO: Ya no usamos preload_all_models para ahorrar memoria
+    # Los modelos se cargan bajo demanda y se liberan después de cada uso
     
     def get_available_models(self) -> list:
         """Retorna la lista de modelos disponibles ordenados por eficiencia (menor a mayor)"""
@@ -255,11 +223,29 @@ class WhisperService:
         except Exception as e:
             logger.error(f"Error limpiando archivos: {str(e)}")
 
+    def unload_model(self, model_name: str):
+        """Libera un modelo específico para ahorrar memoria"""
+        with self.model_lock:
+            if model_name in self.models:
+                del self.models[model_name]
+                # Forzar recolección de basura para liberar memoria
+                import gc
+                gc.collect()
+                torch.cuda.empty_cache() if torch.cuda.is_available() else None
+                logger.info(f"Modelo {model_name} descargado para ahorrar memoria")
+                return True
+            return False
+            
     def shutdown(self):
         """Cierra el ThreadPoolExecutor"""
         if self.executor:
             self.executor.shutdown(wait=True)
             logger.info("ThreadPoolExecutor cerrado")
+            
+        # Limpiar modelos para liberar memoria
+        with self.model_lock:
+            self.models.clear()
+            logger.info("Modelos Whisper liberados")
 
     def __del__(self):
         """Destructor para asegurar que el executor se cierre"""

@@ -15,11 +15,11 @@ fi
 echo "📦 Instalando dependencias..."
 pip install -r requirements.txt
 
-# Pre-instalar modelos
-echo "📥 Pre-instalando modelos Whisper..."
-python preinstall_models.py
+# Ya no pre-instalamos modelos para ahorrar memoria
+echo "� Optimización: Los modelos se cargarán bajo demanda"
 
-if [ $? -eq 0 ]; then
+# Consideramos el build exitoso
+if [ true ]; then
     echo "✅ Build completado exitosamente"
     echo "🚀 Listo para despliegue en producción"
     echo ""

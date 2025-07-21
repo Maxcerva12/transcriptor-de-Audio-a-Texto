@@ -60,8 +60,11 @@ async def transcribe_audio(
             task_id=task_id
         )
         
-        # Programar limpieza del archivo
+        # Programar limpieza del archivo y descargar el modelo para liberar memoria
         background_tasks.add_task(cleanup_file, file_path)
+        background_tasks.add_task(whisper_service.unload_model, model)
+        
+        logger.info(f"Transcripción completada - Se descargará el modelo {model} tras enviar la respuesta")
         
         return TranscriptionResponse(
             text=result["text"],

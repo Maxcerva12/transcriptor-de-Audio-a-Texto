@@ -214,7 +214,7 @@ npm run lint               # Linting
 
 **Variables de entorno requeridas:**
 ```bash
-ENVIRONMENT=production  # Activa pre-carga de todos los modelos
+ENVIRONMENT=production  # Ambiente de producción
 ALLOWED_ORIGINS=https://tu-frontend.vercel.app
 PORT=8000
 DEBUG=False
@@ -227,10 +227,10 @@ DEBUG=False
    - Configura las variables de entorno
    - El servicio ejecutará automáticamente `python run.py`
 
-2. **Script de pre-instalación:**
+2. **Modelos bajo demanda:**
    ```bash
-   # En tu servidor, ejecuta una sola vez:
-   python preinstall_models.py
+   # Los modelos se cargarán automáticamente cuando sean necesarios
+   # y se liberarán después de su uso para ahorrar memoria
    ```
 
    Esto descarga todos los modelos Whisper y los deja listos para usar.
@@ -241,7 +241,7 @@ services:
   - type: web
     name: transcriptor-backend
     env: python
-    buildCommand: "pip install -r requirements.txt && python preinstall_models.py"
+    buildCommand: "pip install -r requirements.txt"
     startCommand: "python run.py"
     envVars:
       - key: ENVIRONMENT

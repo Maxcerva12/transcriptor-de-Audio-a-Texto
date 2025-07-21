@@ -11,7 +11,11 @@ def main():
     load_dotenv()
     
     host = os.getenv("HOST", "127.0.0.1")
-    port = int(os.getenv("PORT", 8000))
+    
+    # Manejo seguro de la variable PORT
+    port_env = os.getenv("PORT", "")
+    port = int(port_env) if port_env.strip() else 8000
+    
     debug = os.getenv("DEBUG", "True").lower() == "true"
     
     print("🎙️  Iniciando Transquitor API...")

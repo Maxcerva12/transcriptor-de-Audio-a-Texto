@@ -172,18 +172,28 @@ class WhisperService:
 
     def preload_all_models(self):
         """Pre-carga todos los modelos Whisper para despliegue"""
-        models_to_preload = ["tiny", "base", "small", "medium", "large-v1", "large-v2", "large-v3", "large"]
         
-        # Intentar cargar también turbo si está disponible
-        try:
-            import whisper
-            available = whisper.available_models()
-            if "turbo" in available:
-                models_to_preload.append("turbo")
-        except Exception:
-            pass
+        # Detectar si estamos en entorno Render
+        is_render = os.environ.get('RENDER', '') == 'true'
         
-        logger.info("Iniciando pre-carga de todos los modelos Whisper...")
+        if is_render:
+            # En Render solo pre-cargamos el modelo tiny para ahorrar memoria
+            models_to_preload = ["tiny"]
+            logger.info("🚀 Entorno Render detectado: modo memoria optimizada")
+        else:
+            # En otros entornos cargamos todos los modelos
+            models_to_preload = ["tiny", "base", "small", "medium", "large-v1", "large-v2", "large-v3", "large"]
+            
+            # Intentar cargar también turbo si está disponible
+            try:
+                import whisper
+                available = whisper.available_models()
+                if "turbo" in available:
+                    models_to_preload.append("turbo")
+            except Exception:
+                pass
+        
+        logger.info("Iniciando pre-carga de modelos Whisper...")
         
         for model_name in models_to_preload:
             try:

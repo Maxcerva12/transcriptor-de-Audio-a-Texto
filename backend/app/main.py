@@ -56,9 +56,16 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configurar CORS
-allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,https://transcriptor-de-audio-a-texto.vercel.app")
-origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+# Configurar CORS - Con corrección para permitir todos los orígenes en desarrollo
+is_production = os.getenv("ENVIRONMENT", "development").lower() == "production"
+
+if is_production:
+    # En producción, usar los orígenes específicos de la variable de entorno
+    allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "https://transcriptor-de-audio-a-texto.vercel.app,http://localhost:3000")
+    origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+else:
+    # En desarrollo, permitir todos los orígenes para facilitar las pruebas
+    origins = ["*"]
 
 print(f"Orígenes CORS permitidos: {origins}")  # Para depuración
 

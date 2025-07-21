@@ -6,7 +6,11 @@ import {
   UploadProgress,
 } from "@/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Si estamos en el navegador, usamos el proxy interno de Next.js para evitar CORS
+const isClient = typeof window !== 'undefined';
+const API_BASE_URL = isClient 
+  ? '/api/proxy' 
+  : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1");
 
 // Tiempos estimados de procesamiento basados en el modelo (en minutos)
 const MODEL_ESTIMATED_TIMES = {
@@ -31,7 +35,7 @@ const getEstimatedTimeForModel = (model?: string): number => {
 };
 
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`,
+  baseURL: API_BASE_URL,
   timeout: 0, // Sin timeout - permitir que la transcripción tome el tiempo que necesite
 });
 

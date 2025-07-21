@@ -3,7 +3,7 @@ services:
     name: transcriptor-backend
     env: python
     plan: starter
-    buildCommand: "pip install -r backend/requirements.txt && python backend/preinstall_models.py"
+    buildCommand: "pip install setuptools<81 && pip install -r backend/requirements.txt && python backend/preinstall_models.py"
     startCommand: "python backend/run.py"
     runtime: python3.12
     envVars:

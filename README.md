@@ -269,17 +269,6 @@ NEXT_PUBLIC_API_URL=https://tu-backend.render.com
 | large | 8 | ~22 min | Máxima calidad (última) |
 | turbo | 9 | ~10 min | Optimizado, rápido |
 
-### Servicios de despliegue recomendados:
-
-**Backend:**
-- **Render**: Deploy automático desde GitHub
-- **Railway**: Fácil configuración
-- **Fly.io**: Alta performance
-
-**Frontend:**
-- **Vercel**: Optimizado para Next.js
-- **Netlify**: Simple y rápido
-- **Cloudflare Pages**: CDN global
 
 ## 📝 Licencia
 

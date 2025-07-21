@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Mic, Menu, X, Volume2, Github } from "lucide-react";
+import { Mic, Menu, Volume2, Github } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 import { 
   Sheet, 

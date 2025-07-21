@@ -9,7 +9,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
@@ -75,24 +74,7 @@ export const TranscriptionOptions: React.FC<TranscriptionOptionsProps> = ({
     });
   };
 
-  const getModelDescription = (model: string) => {
-    if (!modelInfo) return "";
-
-    const descriptions: Record<string, string> = {
-      tiny: "Nivel 1: Más rápido, menos preciso (⏱️ Listo en ~3 min)",
-      base: "Nivel 2: Equilibrado (recomendado) (⏱️ Listo en ~5 min)",
-      small: "Nivel 3: Buena calidad (⏱️ Listo en ~8 min)",
-      medium: "Nivel 4: Alta calidad (⏱️ Listo en ~12 min)",
-      "large-v1": "Nivel 5: Máxima calidad (v1) (⏱️ Listo en ~16 min)",
-      "large-v2": "Nivel 6: Máxima calidad (v2) (⏱️ Listo en ~18 min)",
-      "large-v3": "Nivel 7: Máxima calidad (v3) (⏱️ Listo en ~20 min)",
-      large: "Nivel 8: Máxima calidad (última versión) (⏱️ Listo en ~22 min)",
-      turbo:
-        "Nivel 9: Optimizado de large-v3 (más rápido) (⏱️ Listo en ~10 min)",
-    };
-
-    return descriptions[model] || "";
-  };
+  // Función eliminada ya que no se utiliza
 
   if (loading) {
     return (

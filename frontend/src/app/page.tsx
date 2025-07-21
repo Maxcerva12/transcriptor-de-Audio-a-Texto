@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Mic, Volume2, AlertCircle, CheckCircle, X, ArrowDown, FileAudio, Info, Globe } from "lucide-react";
+import { Mic, AlertCircle, CheckCircle, X, FileAudio, Info, Globe } from "lucide-react";
 import {
   FileDropzone,
   ProgressBar,
@@ -13,12 +13,12 @@ import {
   Section
 } from "@/components";
 import { TranscriptionService } from "@/services/transcription";
-import { TranscriptionState, TranscriptionRequest } from "@/types";
+import { TranscriptionState } from "@/types";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -39,8 +39,9 @@ export default function Home() {
   
   // Refs para desplazamiento
   const fileUploadSectionRef = useRef<HTMLDivElement>(null);
-  const comoFuncionaRef = useRef<HTMLDivElement>(null);
-  const caracteristicasRef = useRef<HTMLDivElement>(null);
+  // Referencias para uso futuro
+  // const comoFuncionaRef = useRef<HTMLDivElement>(null);
+  // const caracteristicasRef = useRef<HTMLDivElement>(null);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);

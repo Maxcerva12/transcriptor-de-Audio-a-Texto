@@ -1,7 +1,6 @@
 "use client";
 
 import { Github, Linkedin, Globe, Mail } from "lucide-react";
-import { Button } from "./ui/button";
 import { 
   Tooltip,
   TooltipContent,

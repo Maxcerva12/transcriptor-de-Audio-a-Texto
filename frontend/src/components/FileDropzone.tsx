@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, FileRejection } from "react-dropzone";
 import { Upload, FileAudio, X, AlertCircle } from "lucide-react";
 import { isAudioFile, formatFileSize } from "@/services/transcription";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
   const [error, setError] = useState<string>("");
 
   const onDrop = useCallback(
-    (acceptedFiles: File[], rejectedFiles: any[]) => {
+    (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
       setError("");
 
       if (rejectedFiles.length > 0) {

@@ -82,6 +82,11 @@ async def root():
         "docs": "/docs"
     }
 
+@app.get("/healthz")
+async def health_check():
+    """Endpoint para health checks de Render"""
+    return {"status": "ok"}
+
 @app.exception_handler(404)
 async def not_found_handler(request, exc):
     return JSONResponse(

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, dialog, protocol } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, dialog, protocol, session } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const isDev = require('electron-is-dev');
@@ -99,6 +99,14 @@ async function startPythonServer() {
 
 // Función para crear la ventana principal
 async function createWindow() {
+  // Limpiar caché de Electron para evitar problemas de archivos faltantes
+  try {
+    await session.defaultSession.clearCache();
+    console.log('Caché de Electron limpiada');
+  } catch (error) {
+    console.log('No se pudo limpiar la caché:', error);
+  }
+  
   // Mostrar ventana de carga
   const loadingWindow = new BrowserWindow({
     width: 400,
@@ -197,22 +205,78 @@ async function createWindow() {
 app.whenReady().then(() => {
   // Registrar protocolo personalizado para archivos estáticos
   if (!isDev) {
-    protocol.registerFileProtocol('file', (request, callback) => {
-      let pathname = decodeURI(request.url.replace('file:///', ''));
+    // Interceptar TODAS las solicitudes de archivos
+    protocol.interceptFileProtocol('file', (request, callback) => {
+      console.log(`🔍 INTERCEPTADO: ${request.url}`);
       
-      // Manejar rutas de assets de Next.js que empiezan con /_next/
-      if (request.url.includes('/_next/')) {
-        const frontendPath = path.join(__dirname, 'frontend', 'out');
-        const assetPath = request.url.split('/_next/')[1];
-        pathname = path.join(frontendPath, '_next', assetPath);
+      const url = request.url;
+      let filePath = '';
+      
+      // Decodificar la URL
+      const decodedUrl = decodeURI(url);
+      
+      // Si contiene _next, es un asset de Next.js
+      if (decodedUrl.includes('_next')) {
+        // Construir la ruta base del frontend
+        const frontendBase = path.join(__dirname, 'frontend', 'out');
+        
+        // Extraer la parte de _next en adelante
+        const nextIndex = decodedUrl.indexOf('_next');
+        const nextPart = decodedUrl.substring(nextIndex);
+        
+        filePath = path.join(frontendBase, nextPart);
+        console.log(`📁 Asset Next.js detectado: ${nextPart} -> ${filePath}`);
       }
-      // Si la URL tiene el patrón de Windows drive (C:/)
-      else if (!pathname.includes(':')) {
-        pathname = path.join(__dirname, pathname);
+      // Si es el index.html
+      else if (decodedUrl.endsWith('index.html') || decodedUrl.includes('frontend/out/index.html')) {
+        filePath = path.join(__dirname, 'frontend', 'out', 'index.html');
+        console.log(`📄 Index.html detectado -> ${filePath}`);
+      }
+      // Archivos normales
+      else {
+        // Quitar el prefijo file:///
+        let cleanPath = decodedUrl.replace('file:///', '').replace('file://', '');
+        
+        // Si es una ruta absoluta de Windows, usarla directamente
+        if (cleanPath.match(/^[A-Z]:/)) {
+          filePath = cleanPath;
+        } else {
+          filePath = path.join(__dirname, cleanPath);
+        }
+        console.log(`📋 Archivo normal: ${cleanPath} -> ${filePath}`);
       }
       
-      console.log(`Cargando archivo: ${pathname}`);
-      callback({ path: pathname });
+      console.log(`🎯 Ruta final: ${filePath}`);
+      
+      // Verificar si el archivo existe
+      if (fs.existsSync(filePath)) {
+        console.log(`✅ ENCONTRADO: ${filePath}`);
+        callback(filePath);
+      } else {
+        console.log(`❌ NO ENCONTRADO: ${filePath}`);
+        
+        // Intento de búsqueda en directorios comunes de Next.js
+        const filename = path.basename(filePath);
+        const searchDirs = [
+          path.join(__dirname, 'frontend', 'out', '_next', 'static', 'css'),
+          path.join(__dirname, 'frontend', 'out', '_next', 'static', 'chunks'),
+          path.join(__dirname, 'frontend', 'out', '_next', 'static', 'media'),
+          path.join(__dirname, 'frontend', 'out')
+        ];
+        
+        for (const dir of searchDirs) {
+          const testPath = path.join(dir, filename);
+          if (fs.existsSync(testPath)) {
+            console.log(`🔍 ENCONTRADO EN BÚSQUEDA: ${testPath}`);
+            callback(testPath);
+            return;
+          }
+        }
+        
+        // Si nada funciona, devolver error
+        console.log(`💥 ERROR FINAL para: ${request.url}`);
+        callback({ error: -2 }); // FILE_NOT_FOUND
+      }
     });
   }
   

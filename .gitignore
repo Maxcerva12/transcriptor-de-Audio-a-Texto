@@ -1,0 +1,73 @@
+# Dependencias
+node_modules/
+frontend/node_modules/
+
+# Archivos de compilación
+build/
+dist/
+frontend/out/
+frontend/.next/
+
+# Entorno Python portable
+python-env/
+
+# Archivos de configuración local
+.env
+.env.local
+.env.production
+.env.test
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache
+.cache/
+frontend/.cache/
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Archivos de audio de prueba (uploads)
+backend/uploads/*.mp3
+backend/uploads/*.wav
+backend/uploads/*.aac
+backend/uploads/*.m4a
+backend/uploads/*.flac
+backend/uploads/*.ogg
+
+# Mantener la carpeta uploads pero no los archivos
+!backend/uploads/.gitkeep
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/env/
+backend/venv/
+
+# Archivos específicos de Electron
+out/
+app-dist/
+*.dmg
+*.AppImage
+*.exe
+*.deb
+*.rpm
+
+# Certificados y llaves
+*.p12
+*.key
+*.pem
+
+# Archivos de Whisper models cache
+*.cache/
+whisper_cache/

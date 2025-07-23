@@ -1,3 +1,35 @@
+// Tipos para Electron API
+export interface ElectronAPI {
+  isElectron: boolean;
+  platform: string;
+  versions: {
+    node: string;
+    chrome: string;
+    electron: string;
+  };
+}
+
+export interface WindowAPI {
+  api: {
+    getAppInfo: () => {
+      appName: string;
+      version: string;
+      apiUrl: string;
+      isElectron: boolean;
+    };
+    showMessage: (title: string, message: string) => void;
+    openExternal: (url: string) => void;
+  };
+}
+
+// Extender la interfaz Window para incluir las APIs de Electron
+declare global {
+  interface Window {
+    electronAPI?: ElectronAPI;
+    api?: WindowAPI['api'];
+  }
+}
+
 export interface TranscriptionRequest {
   model?: string;
   language?: string;

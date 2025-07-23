@@ -25,12 +25,16 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Iniciando aplicación Transquitor")
     try:
-        # Verificar si estamos en producción (despliegue)
+        # Verificar si estamos en producción (despliegue) o en Electron
         is_production = os.getenv("ENVIRONMENT", "development").lower() == "production"
+        is_electron = os.getenv("ENVIRONMENT", "development").lower() == "electron"
         
         if is_production:
             logger.info("Modo producción detectado - Pre-cargando todos los modelos...")
             whisper_service.preload_all_models()
+        elif is_electron:
+            logger.info("Modo Electron detectado - Pre-cargando modelo base...")
+            whisper_service.load_model("base")
         else:
             # En desarrollo, solo pre-cargar modelo base
             whisper_service.load_model("base")
@@ -56,8 +60,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configurar CORS
-origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+# Configurar CORS - Permitir conexiones desde Electron
+origins = ["http://localhost:3000", "file://", "http://localhost:*"]
+
+# Si estamos en Electron, permitir cualquier origen local
+if os.getenv("ENVIRONMENT", "development").lower() == "electron":
+    origins = ["*"]  # Permitir todos los orígenes en Electron
+else:
+    # En desarrollo web normal, usar los orígenes configurados
+    origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

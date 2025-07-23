@@ -1,0 +1,6 @@
+{
+  "build-complete": "npm run build:frontend && npm run fix-paths && npm run create-portable",
+  "build:frontend": "cd frontend && npm run build",
+  "fix-paths": "node scripts/fix-html-paths.js",
+  "create-portable": "node scripts/create-portable.js"
+}

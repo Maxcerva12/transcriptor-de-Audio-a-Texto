@@ -6,7 +6,18 @@ import {
   UploadProgress,
 } from "@/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Detectar si estamos en Electron y configurar la URL base apropiada
+const getApiBaseUrl = () => {
+  // Si estamos en Electron, siempre usar localhost
+  if (typeof window !== 'undefined' && window.electronAPI) {
+    return "http://localhost:8000";
+  }
+  
+  // Si no estamos en Electron, usar la variable de entorno o localhost por defecto
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Tiempos estimados de procesamiento basados en el modelo (en minutos)
 const MODEL_ESTIMATED_TIMES = {

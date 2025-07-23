@@ -19,6 +19,27 @@ Una aplicación web completa que permite transcribir archivos de audio a texto d
 - ✅ **Segmentos detallados** con timestamps
 - ✅ **Totalmente gratuito** y open source
 
+## 📦 Descarga Ejecutable Windows
+
+**¿Quieres usar la aplicación sin configurar nada?**
+
+📥 **[Descargar Transcriptor Audio a Texto (3.3 GB)](./win-unpacked.rar)**
+
+### ✨ Características del ejecutable:
+- ✅ **Todo incluido**: Python + Whisper + Dependencias
+- ✅ **Sin instalación**: Solo extraer y ejecutar
+- ✅ **Portable**: Funciona en cualquier Windows
+- ✅ **9 modelos IA**: Todos los modelos Whisper pre-instalados
+- ✅ **Tamaño**: ~3.3 GB (todos los modelos incluidos)
+
+### 🚀 Instrucciones de uso:
+1. **Descarga** el archivo `win-unpacked.rar`
+2. **Extrae** el contenido en cualquier carpeta
+3. **Ejecuta** `Transcriptor Audio a Texto.exe`
+4. ¡**Listo**! La aplicación se abrirá automáticamente
+
+> **Nota**: Este ejecutable incluye todos los modelos de IA para que funcione sin conexión a internet durante la transcripción.
+
 ## 🏗️ Arquitectura
 
 - **Frontend**: Next.js 15 + React 18 + TypeScript + Tailwind CSS
@@ -192,6 +213,8 @@ npm run lint               # Linting
 ```
 
 ## 🚀 Despliegue en Producción
+
+> **⚠️ Importante**: Los modelos de Whisper son muy pesados (hasta 3+ GB) para servicios gratuitos. **Recomendamos usar el [ejecutable Windows](#-descarga-ejecutable-windows)** para la mejor experiencia.
 
 ### Nuevas funcionalidades implementadas:
 

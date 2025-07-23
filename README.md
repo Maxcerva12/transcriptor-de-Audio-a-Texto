@@ -23,7 +23,7 @@ Una aplicación web completa que permite transcribir archivos de audio a texto d
 
 **¿Quieres usar la aplicación sin configurar nada?**
 
-📥 **[Descargar Transcriptor Audio a Texto (3.3 GB)](./win-unpacked.rar)**
+📥 **[Descargar Transcriptor Audio a Texto (3.3 GB)](https://drive.google.com/file/d/1lx9FGWMUmo_9QK_mcH1eVZz2e6d63JfH/view?usp=drive_link)**
 
 ### ✨ Características del ejecutable:
 - ✅ **Todo incluido**: Python + Whisper + Dependencias
@@ -33,10 +33,11 @@ Una aplicación web completa que permite transcribir archivos de audio a texto d
 - ✅ **Tamaño**: ~3.3 GB (todos los modelos incluidos)
 
 ### 🚀 Instrucciones de uso:
-1. **Descarga** el archivo `win-unpacked.rar`
-2. **Extrae** el contenido en cualquier carpeta
-3. **Ejecuta** `Transcriptor Audio a Texto.exe`
-4. ¡**Listo**! La aplicación se abrirá automáticamente
+1. **Haz clic** en el enlace de descarga de Google Drive
+2. **Descarga** el archivo `win-unpacked.rar` (3.3 GB)
+3. **Extrae** el contenido en cualquier carpeta
+4. **Ejecuta** `Transcriptor Audio a Texto.exe`
+5. ¡**Listo**! La aplicación se abrirá automáticamente
 
 > **Nota**: Este ejecutable incluye todos los modelos de IA para que funcione sin conexión a internet durante la transcripción.
 
